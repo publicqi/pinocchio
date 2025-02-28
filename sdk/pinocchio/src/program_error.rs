@@ -124,31 +124,8 @@ impl From<u64> for ProgramError {
         let discriminant = (value >> BUILTIN_BIT_SHIFT) as u32;
         match discriminant {
             1 => Self::Custom(0),
-            2 => Self::InvalidArgument,
-            3 => Self::InvalidInstructionData,
-            4 => Self::InvalidAccountData,
-            5 => Self::AccountDataTooSmall,
-            6 => Self::InsufficientFunds,
-            7 => Self::IncorrectProgramId,
-            8 => Self::MissingRequiredSignature,
-            9 => Self::AccountAlreadyInitialized,
-            10 => Self::UninitializedAccount,
-            11 => Self::NotEnoughAccountKeys,
-            12 => Self::AccountBorrowFailed,
-            13 => Self::MaxSeedLengthExceeded,
-            14 => Self::InvalidSeeds,
-            15 => Self::BorshIoError,
-            16 => Self::AccountNotRentExempt,
-            17 => Self::UnsupportedSysvar,
-            18 => Self::IllegalOwner,
-            19 => Self::MaxAccountsDataAllocationsExceeded,
-            20 => Self::InvalidRealloc,
-            21 => Self::MaxInstructionTraceLengthExceeded,
-            22 => Self::BuiltinProgramsMustConsumeComputeUnits,
-            23 => Self::InvalidAccountOwner,
-            24 => Self::ArithmeticOverflow,
-            25 => Self::Immutable,
-            26 => Self::IncorrectAuthority,
+            // SAFETY: the discriminant is always the first field for non Custom
+            2..=26 => unsafe { (*(&discriminant as *const u32 as *const ProgramError)).clone() },
             _ => Self::Custom(value as u32),
         }
     }
