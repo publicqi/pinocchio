@@ -121,11 +121,11 @@ impl From<ProgramError> for u64 {
 
 impl From<u64> for ProgramError {
     fn from(value: u64) -> Self {
-        let discriminant = (value >> BUILTIN_BIT_SHIFT) as u32;
+        let discriminant = (value >> BUILTIN_BIT_SHIFT) as u8;
         match discriminant {
             1 => Self::Custom(0),
             // SAFETY: the discriminant is always the first field for non Custom
-            2..=26 => unsafe { (*(&discriminant as *const u32 as *const ProgramError)).clone() },
+            2..=26 => unsafe { (*(&discriminant as *const u8 as *const ProgramError)).clone() },
             _ => Self::Custom(value as u32),
         }
     }
