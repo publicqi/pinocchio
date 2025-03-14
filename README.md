@@ -55,13 +55,15 @@ This will add `pinocchio` as a dependency to your project.
 
 ## Defining the program entrypoint
 
-A Solana program needs to define an entrypoint, which will be called by the runtime to begin the program execution. The `entrypoint!` macro emits the common boilerplate to set up the program entrypoint. The macro will also set up [global allocator](https://doc.rust-lang.org/stable/core/alloc/trait.GlobalAlloc.html) and [panic handler](https://doc.rust-lang.org/nomicon/panic-handler.html) using the [default_allocator!](https://docs.rs/pinocchio/latest/pinocchio/macro.default_allocator.html) and [default_panic_handler!](https://docs.rs/pinocchio/latest/pinocchio/macro.default_panic_handler.html) macros.
+A Solana program needs to define an entrypoint, which will be called by the runtime to begin the program execution. The `entrypoint!` macro emits the common boilerplate to set up the program entrypoint. The macro will also set up [global allocator](https://doc.rust-lang.org/stable/core/alloc/trait.GlobalAlloc.html) and [custom panic hook](https://github.com/anza-xyz/rust/blob/2830febbc59d44bdd7ad2c3b81731f1d08b96eba/library/std/src/sys/pal/sbf/mod.rs#L49) using the [default_allocator!](https://docs.rs/pinocchio/latest/pinocchio/macro.default_allocator.html) and [default_panic_handler!](https://docs.rs/pinocchio/latest/pinocchio/macro.default_panic_handler.html) macros.
 
 The [`entrypoint!`](https://docs.rs/pinocchio/latest/pinocchio/macro.entrypoint.html) is a convenience macro that invokes three other macros to set all symbols required for a program execution:
 
 * [`program_entrypoint!`](https://docs.rs/pinocchio/latest/pinocchio/macro.program_entrypoint.html): declares the program entrypoint
 * [`default_allocator!`](https://docs.rs/pinocchio/latest/pinocchio/macro.default_allocator.html): declares the default (bump) global allocator
-* [`default_panic_hanlder!`](https://docs.rs/pinocchio/latest/pinocchio/macro.default_panic_handler.html): declares the default panic handler
+* [`default_panic_handler!`](https://docs.rs/pinocchio/latest/pinocchio/macro.default_panic_handler.html): declares the default panic handler
+
+If all dependencies are `no_std`, you should append [`nostd_panic_handler!`](https://docs.rs/pinocchio/latest/pinocchio/macro.nostd_panic_handler.html) to declare a rust runtime panic handler. There's no need to do this if any dependency is `std` since rust compiler will emit std panic handler.
 
 To use the `entrypoint!` macro, use the following in your entrypoint definition:
 ```rust
