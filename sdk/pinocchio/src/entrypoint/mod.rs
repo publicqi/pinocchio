@@ -220,10 +220,11 @@ pub unsafe fn deserialize<'a, const MAX_ACCOUNTS: usize>(
     (program_id, processed, instruction_data)
 }
 
-/// Default panic handler.
+/// Default panic hook (std).
 ///
-/// This macro sets up a default panic handler that logs the panic message and the file where the
-/// panic occurred.
+/// This macro sets up a default panic hook that logs the panic message and the file where the
+/// panic occurred. Syscall "abort()" will be called after it returns. It acts as a hook after
+/// rust runtime panics.
 ///
 /// Note that this requires the `"std"` feature to be enabled.
 #[cfg(feature = "std")]
@@ -240,11 +241,11 @@ macro_rules! default_panic_handler {
     };
 }
 
-/// Default panic handler.
+/// Default panic hook (no std).
 ///
-/// This macro sets up a default panic handler that logs the file where the panic occurred.
+/// This macro sets up a default panic hook that logs the file where the panic occurred.
 ///
-/// This is used when the `"std"` feature is disabled.
+/// This is used when the `"std"` feature is disabled and program is `std`.
 #[cfg(not(feature = "std"))]
 #[macro_export]
 macro_rules! default_panic_handler {
@@ -258,6 +259,39 @@ macro_rules! default_panic_handler {
             }
             // Panic reporting.
             $crate::log::sol_log("** PANICKED **");
+        }
+    };
+}
+
+/// A rust panic handler for `no_std`.
+///
+/// When all crates are `no_std`, we need to define a global `#[panic_handler]`.
+/// It takes over the default rust panic handler.
+///
+/// This macro is used when the `"std"` feature is disabled.
+#[cfg(not(feature = "std"))]
+#[macro_export]
+macro_rules! nostd_panic_handler {
+    () => {
+        /// A panic handler for `no_std`.
+        #[cfg(target_os = "solana")]
+        #[no_mangle]
+        #[panic_handler]
+        fn handler(info: &core::panic::PanicInfo<'_>) -> ! {
+            if let Some(location) = info.location() {
+                unsafe {
+                    $crate::syscalls::sol_panic_(
+                        location.file().as_ptr(),
+                        location.file().len() as u64,
+                        location.line() as u64,
+                        location.column() as u64,
+                    )
+                }
+            } else {
+                // Panic reporting.
+                $crate::log::sol_log("** PANICKED **");
+                unsafe { $crate::syscalls::abort() }
+            }
         }
     };
 }
