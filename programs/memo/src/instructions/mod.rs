@@ -2,9 +2,9 @@ use core::mem::MaybeUninit;
 
 use pinocchio::{
     account_info::AccountInfo,
-    cpi::invoke_signed_unchecked,
+    cpi::{invoke_signed_unchecked, MAX_CPI_ACCOUNTS},
     instruction::{Account, AccountMeta, Instruction, Signer},
-    ProgramResult, MAX_TX_ACCOUNTS,
+    ProgramResult,
 };
 
 /// Memo instruction.
@@ -28,21 +28,21 @@ impl Memo<'_> {
         const UNINIT_META: MaybeUninit<AccountMeta> = MaybeUninit::<AccountMeta>::uninit();
         const UNINIT_ACCOUNT: MaybeUninit<Account> = MaybeUninit::<Account>::uninit();
 
-        // We don't know num_accounts at compile time, so we use MAX_TX_ACCOUNTS
-        let mut account_metas = [UNINIT_META; MAX_TX_ACCOUNTS];
-        let mut accounts = [UNINIT_ACCOUNT; MAX_TX_ACCOUNTS];
+        // We don't know num_accounts at compile time, so we use MAX_CPI_ACCOUNTS
+        let mut account_metas = [UNINIT_META; MAX_CPI_ACCOUNTS];
+        let mut accounts = [UNINIT_ACCOUNT; MAX_CPI_ACCOUNTS];
 
         let num_accounts = self.account_infos.len();
 
         for i in 0..num_accounts {
             unsafe {
-                // SAFETY: num_accounts is less than MAX_TX_ACCOUNTS
+                // SAFETY: num_accounts is less than MAX_CPI_ACCOUNTS
                 // and accounts are readonly
                 accounts
                     .get_unchecked_mut(i)
                     .write(Account::from(self.account_infos[i]));
 
-                // SAFETY: num_accounts is less than MAX_TX_ACCOUNTS
+                // SAFETY: num_accounts is less than MAX_CPI_ACCOUNTS
                 account_metas
                     .get_unchecked_mut(i)
                     .write(AccountMeta::readonly_signer(self.account_infos[i].key()));
