@@ -13,7 +13,7 @@ use pinocchio::{
 ///   0-N. `[SIGNER]` Signers
 pub struct Memo<'a> {
     /// Signing accounts
-    pub account_infos: &'a [&'a AccountInfo],
+    pub signers: &'a [&'a AccountInfo],
     /// Memo
     pub memo: &'a [u8],
 }
@@ -24,7 +24,7 @@ impl Memo<'_> {
         self.invoke_signed(&[])
     }
 
-    pub fn invoke_signed(&self, signers: &[Signer]) -> ProgramResult {
+    pub fn invoke_signed(&self, signers_seeds: &[Signer]) -> ProgramResult {
         const UNINIT_META: MaybeUninit<AccountMeta> = MaybeUninit::<AccountMeta>::uninit();
         const UNINIT_ACCOUNT: MaybeUninit<Account> = MaybeUninit::<Account>::uninit();
 
@@ -32,7 +32,7 @@ impl Memo<'_> {
         let mut account_metas = [UNINIT_META; MAX_CPI_ACCOUNTS];
         let mut accounts = [UNINIT_ACCOUNT; MAX_CPI_ACCOUNTS];
 
-        let num_accounts = self.account_infos.len();
+        let num_accounts = self.signers.len();
 
         for i in 0..num_accounts {
             unsafe {
@@ -40,12 +40,12 @@ impl Memo<'_> {
                 // and accounts are readonly
                 accounts
                     .get_unchecked_mut(i)
-                    .write(Account::from(self.account_infos[i]));
+                    .write(Account::from(self.signers[i]));
 
                 // SAFETY: num_accounts is less than MAX_CPI_ACCOUNTS
                 account_metas
                     .get_unchecked_mut(i)
-                    .write(AccountMeta::readonly_signer(self.account_infos[i].key()));
+                    .write(AccountMeta::readonly_signer(self.signers[i].key()));
             }
         }
 
@@ -63,7 +63,7 @@ impl Memo<'_> {
             invoke_signed_unchecked(
                 &instruction,
                 core::slice::from_raw_parts(accounts.as_ptr() as _, num_accounts),
-                signers,
+                signers_seeds,
             );
         }
 
