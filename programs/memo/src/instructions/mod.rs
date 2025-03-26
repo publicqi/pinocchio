@@ -10,7 +10,7 @@ use pinocchio::{
 /// Memo instruction.
 ///
 /// ### Accounts:
-///   0-N. `[SIGNER]` Signers
+///   0. `..+N` `[SIGNER]` N signing accounts
 pub struct Memo<'a> {
     /// Signing accounts
     pub signers: &'a [&'a AccountInfo],
@@ -41,7 +41,7 @@ impl Memo<'_> {
             }
         }
 
-        // SAFETY: all account_metas are readonly and is_signer
+        // SAFETY: len(account_metas) <= MAX_CPI_ACCOUNTS
         let instruction = Instruction {
             program_id: &crate::ID,
             accounts: unsafe {
