@@ -4,6 +4,7 @@ use pinocchio::{
     account_info::AccountInfo,
     cpi::{slice_invoke_signed, MAX_CPI_ACCOUNTS},
     instruction::{AccountMeta, Instruction, Signer},
+    program_error::ProgramError,
     ProgramResult,
 };
 
@@ -31,6 +32,9 @@ impl Memo<'_> {
         let mut account_metas = [UNINIT_META; MAX_CPI_ACCOUNTS];
 
         let num_accounts = self.signers.len();
+        if num_accounts > MAX_CPI_ACCOUNTS {
+            return Err(ProgramError::InvalidArgument);
+        }
 
         for i in 0..num_accounts {
             unsafe {
