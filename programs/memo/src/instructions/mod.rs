@@ -15,7 +15,7 @@ pub struct Memo<'a> {
     /// Signing accounts
     pub signers: &'a [&'a AccountInfo],
     /// Memo
-    pub memo: &'a [u8],
+    pub memo: &'a str,
 }
 
 impl Memo<'_> {
@@ -47,7 +47,7 @@ impl Memo<'_> {
             accounts: unsafe {
                 core::slice::from_raw_parts(account_metas.as_ptr() as _, num_accounts)
             },
-            data: self.memo,
+            data: self.memo.as_bytes(),
         };
 
         slice_invoke_signed(&instruction, self.signers, signers_seeds)
