@@ -2,8 +2,8 @@ use core::mem::MaybeUninit;
 
 use pinocchio::{
     account_info::AccountInfo,
-    cpi::{invoke_signed_unchecked, MAX_CPI_ACCOUNTS},
-    instruction::{Account, AccountMeta, Instruction, Signer},
+    cpi::{slice_invoke_signed, MAX_CPI_ACCOUNTS},
+    instruction::{AccountMeta, Instruction, Signer},
     ProgramResult,
 };
 
@@ -26,22 +26,14 @@ impl Memo<'_> {
 
     pub fn invoke_signed(&self, signers_seeds: &[Signer]) -> ProgramResult {
         const UNINIT_META: MaybeUninit<AccountMeta> = MaybeUninit::<AccountMeta>::uninit();
-        const UNINIT_ACCOUNT: MaybeUninit<Account> = MaybeUninit::<Account>::uninit();
 
         // We don't know num_accounts at compile time, so we use MAX_CPI_ACCOUNTS
         let mut account_metas = [UNINIT_META; MAX_CPI_ACCOUNTS];
-        let mut accounts = [UNINIT_ACCOUNT; MAX_CPI_ACCOUNTS];
 
         let num_accounts = self.signers.len();
 
         for i in 0..num_accounts {
             unsafe {
-                // SAFETY: num_accounts is less than MAX_CPI_ACCOUNTS
-                // and accounts are readonly
-                accounts
-                    .get_unchecked_mut(i)
-                    .write(Account::from(self.signers[i]));
-
                 // SAFETY: num_accounts is less than MAX_CPI_ACCOUNTS
                 account_metas
                     .get_unchecked_mut(i)
@@ -58,15 +50,6 @@ impl Memo<'_> {
             data: self.memo,
         };
 
-        // SAFETY: accounts are validated
-        unsafe {
-            invoke_signed_unchecked(
-                &instruction,
-                core::slice::from_raw_parts(accounts.as_ptr() as _, num_accounts),
-                signers_seeds,
-            );
-        }
-
-        Ok(())
+        slice_invoke_signed(&instruction, self.signers, signers_seeds)
     }
 }
