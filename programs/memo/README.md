@@ -36,7 +36,7 @@ Creating a memo:
 // Both accounts should be signers
 Memo {
     account_infos: &[&account_infos[0], &account_infos[1]],
-    memo: b"hello",
+    memo: "hello",
 }
 .invoke()?;
 ```
