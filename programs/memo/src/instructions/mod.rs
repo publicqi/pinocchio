@@ -12,14 +12,14 @@ use pinocchio::{
 ///
 /// ### Accounts:
 ///   0. `..+N` `[SIGNER]` N signing accounts
-pub struct Memo<'a> {
+pub struct Memo<'a, 'b, 'c> {
     /// Signing accounts
-    pub signers: &'a [&'a AccountInfo],
+    pub signers: &'b [&'a AccountInfo],
     /// Memo
-    pub memo: &'a str,
+    pub memo: &'c str,
 }
 
-impl Memo<'_> {
+impl Memo<'_, '_, '_> {
     #[inline(always)]
     pub fn invoke(&self) -> ProgramResult {
         self.invoke_signed(&[])
