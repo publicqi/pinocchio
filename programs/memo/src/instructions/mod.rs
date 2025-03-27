@@ -39,9 +39,12 @@ impl Memo<'_> {
         for i in 0..num_accounts {
             unsafe {
                 // SAFETY: num_accounts is less than MAX_CPI_ACCOUNTS
+                // SAFETY: i is less than len(self.signers)
                 account_metas
                     .get_unchecked_mut(i)
-                    .write(AccountMeta::readonly_signer(self.signers[i].key()));
+                    .write(AccountMeta::readonly_signer(
+                        self.signers.get_unchecked(i).key(),
+                    ));
             }
         }
 
