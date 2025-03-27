@@ -35,7 +35,7 @@ Creating a memo:
 ```rust
 // Both accounts should be signers
 Memo {
-    account_infos: &[&account_infos[0], &account_infos[1]],
+    signers: &[&account_infos[0], &account_infos[1]],
     memo: "hello",
 }
 .invoke()?;
