@@ -318,6 +318,12 @@ macro_rules! default_allocator {
             start: $crate::entrypoint::HEAP_START_ADDRESS as usize,
             len: $crate::entrypoint::HEAP_LENGTH,
         };
+
+        // A placeholder for `cargo clippy`
+        #[cfg(not(target_os = "solana"))]
+        #[cfg(not(feature = "std"))]
+        #[global_allocator]
+        static A: $crate::entrypoint::NoAllocator = $crate::entrypoint::NoAllocator;
     };
 }
 
